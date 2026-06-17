@@ -91,3 +91,65 @@ def seed_db():
 
     conn.commit()
     conn.close()
+
+
+def get_user_by_id(user_id):
+    conn = get_db()
+    user = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+    conn.close()
+    return user
+
+
+def get_user_by_email(email):
+    conn = get_db()
+    user = conn.execute(
+        "SELECT * FROM users WHERE email = ?", (email,)
+    ).fetchone()
+    conn.close()
+    return user
+
+
+def get_expenses_by_user(user_id):
+    conn = get_db()
+    rows = conn.execute("""
+        SELECT e.id, e.amount, e.description, e.date,
+               COALESCE(c.name,  'Uncategorised') AS category,
+               COALESCE(c.color, '#888888')        AS category_color
+        FROM   expenses e
+        LEFT JOIN categories c ON c.id = e.category_id
+        WHERE  e.user_id = ?
+        ORDER  BY e.date DESC
+    """, (user_id,)).fetchall()
+    conn.close()
+    return rows
+
+
+def get_spending_by_category(user_id):
+    conn = get_db()
+    rows = conn.execute("""
+        SELECT COALESCE(c.name,  'Uncategorised') AS name,
+               COALESCE(c.color, '#888888')        AS color,
+               SUM(e.amount)                       AS total
+        FROM   expenses e
+        LEFT JOIN categories c ON c.id = e.category_id
+        WHERE  e.user_id = ?
+        GROUP  BY c.id
+        ORDER  BY total DESC
+    """, (user_id,)).fetchall()
+    conn.close()
+    return rows
+
+
+def create_user(name, email, password):
+    conn = get_db()
+    password_hash = generate_password_hash(password)
+    conn.execute(
+        "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
+        (name, email, password_hash),
+    )
+    conn.commit()
+    user = conn.execute(
+        "SELECT * FROM users WHERE email = ?", (email,)
+    ).fetchone()
+    conn.close()
+    return user
