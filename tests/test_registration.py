@@ -23,7 +23,7 @@ def test_register_success(client):
         "name": "Test User", "email": "test@example.com", "password": "secret123"
     })
     assert r.status_code == 302
-    assert "/login" in r.headers["Location"]
+    assert "/dashboard" in r.headers["Location"]
 
 
 def test_register_duplicate_email(client):
