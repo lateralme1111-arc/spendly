@@ -5,7 +5,7 @@ def test_login_valid_credentials(client, app):
     db_module.create_user("Test User", "test@example.com", "password123")
     response = client.post("/login", data={"email": "test@example.com", "password": "password123"})
     assert response.status_code == 302
-    assert response.headers["Location"] == "/dashboard"
+    assert response.headers["Location"] == "/profile"
     with client.session_transaction() as sess:
         assert "user_id" in sess
 
