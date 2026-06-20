@@ -153,3 +153,38 @@ def create_user(name, email, password):
     ).fetchone()
     conn.close()
     return user
+
+
+def update_user_name(user_id, name):
+    conn = get_db()
+    conn.execute("UPDATE users SET name = ? WHERE id = ?", (name, user_id))
+    conn.commit()
+    conn.close()
+
+
+def update_user_password(user_id, password):
+    conn = get_db()
+    conn.execute(
+        "UPDATE users SET password_hash = ? WHERE id = ?",
+        (generate_password_hash(password), user_id),
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_expense_count(user_id):
+    conn = get_db()
+    count = conn.execute(
+        "SELECT COUNT(*) FROM expenses WHERE user_id = ?", (user_id,)
+    ).fetchone()[0]
+    conn.close()
+    return count
+
+
+def get_category_count(user_id):
+    conn = get_db()
+    count = conn.execute(
+        "SELECT COUNT(*) FROM categories WHERE user_id = ?", (user_id,)
+    ).fetchone()[0]
+    conn.close()
+    return count
