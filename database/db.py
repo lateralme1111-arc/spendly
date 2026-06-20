@@ -3,11 +3,12 @@ import sqlite3
 
 from werkzeug.security import generate_password_hash
 
-DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'expense_tracker.db')
-
-
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
+    db_path = os.environ.get(
+        "DATABASE",
+        os.path.join(os.path.dirname(__file__), '..', 'expense_tracker.db'),
+    )
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
@@ -44,6 +45,22 @@ def init_db():
     """)
     conn.commit()
     conn.close()
+
+
+def user_exists(email: str) -> bool:
+    db = get_db()
+    row = db.execute("SELECT 1 FROM users WHERE email = ?", (email,)).fetchone()
+    return row is not None
+
+
+def create_user(name: str, email: str, password_hash: str) -> int:
+    db = get_db()
+    cursor = db.execute(
+        "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
+        (name, email, password_hash),
+    )
+    db.commit()
+    return cursor.lastrowid
 
 
 def seed_db():
