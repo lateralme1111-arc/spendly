@@ -47,17 +47,17 @@ def register():
     password = request.form.get("password", "").strip()
 
     if not name or not email or not password:
-        return render_template("register.html", error="All fields are required.")
-
+        return render_template("register.html", error="All fields are required."), 400
+    if "@" not in email:
+        return render_template("register.html", error="Enter a valid email address."), 400
     if len(password) < 8:
-        return render_template("register.html", error="Password must be at least 8 characters.")
-
+        return render_template("register.html", error="Password must be at least 8 characters."), 400
     if get_user_by_email(email):
-        return render_template("register.html", error="An account with that email already exists.")
+        return render_template("register.html", error="An account with that email already exists."), 400
 
     user = create_user(name, email, password)
     session["user_id"] = user["id"]
-    return redirect(url_for("login"))
+    return redirect(url_for("dashboard"))
 
 
 @app.route("/login", methods=["GET", "POST"])
